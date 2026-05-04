@@ -1,7 +1,0 @@
-Version: 5
-
-Source: https://github.com/anomalyco/opencode
-Matching-Pattern: refs/tags/v@ANY_VERSION@
-Git-Mode: shallow
-Git-Modules: all
-Mode: git

@@ -1,0 +1,66 @@
+name: opencode
+adopt-info: opencode
+summary: The open source AI coding agent
+description: |
+  OpenCode is a fully open source AI-powered coding agent that runs in
+  the terminal. It supports multiple AI providers including Claude,
+  OpenAI, Google, and local models. Features include interactive TUI,
+  built-in LSP support, a client/server architecture, and two built-in
+  agents (coder and planner) for development and code exploration tasks.
+
+  OpenCode can edit files, run commands, search codebases, and interact
+  with MCP servers, making it a versatile coding assistant directly in
+  the terminal.
+license: MIT
+base: core24
+confinement: classic
+grade: stable
+
+platforms:
+  amd64:
+  arm64:
+
+apps:
+  opencode:
+    command: bin/opencode
+
+parts:
+  opencode:
+    plugin: nil
+    source: https://github.com/anomalyco/opencode.git
+    source-branch: dev
+    source-type: git
+    build-packages:
+      - curl
+      - unzip
+      - git
+      - jq
+      - build-essential
+      - python3
+      - pkg-config
+    override-pull: |
+      craftctl default
+      craftctl set version="$(jq -r .version packages/opencode/package.json)"
+    override-build: |
+      # Install Bun
+      curl -fsSL https://bun.sh/install | bash
+      export BUN_INSTALL="$HOME/.bun"
+      export PATH="$BUN_INSTALL/bin:$PATH"
+      
+      # Install dependencies
+      bun install
+      
+      # Build standalone binary for current platform
+      cd packages/opencode
+      bun run script/build.ts --single
+      
+      # Determine architecture
+      case "$(uname -m)" in
+        x86_64)  ARCH="x64" ;;
+        aarch64) ARCH="arm64" ;;
+        *)       echo "Unsupported architecture: $(uname -m)" && exit 1 ;;
+      esac
+      
+      # Install the compiled binary
+      mkdir -p "$SNAPCRAFT_PART_INSTALL/bin"
+      cp "dist/opencode-linux-${ARCH}/bin/opencode" "$SNAPCRAFT_PART_INSTALL/bin/opencode"
