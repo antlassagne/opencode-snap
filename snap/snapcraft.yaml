@@ -48,7 +48,6 @@ parts:
       - build-essential
       - python3
       - pkg-config
-      - patchelf
     override-pull: |
       craftctl default
       craftctl set version="$(jq -r .version packages/opencode/package.json)"
@@ -76,24 +75,6 @@ parts:
       mkdir -p "$SNAPCRAFT_PART_INSTALL/bin"
       cp "dist/opencode-linux-${ARCH}/bin/opencode" "$SNAPCRAFT_PART_INSTALL/bin/opencode-cli"
 
-      # Patch ELF interpreter and rpath to use snap's core24 libraries.
-      # This is required for classic confinement best practices so the binary
-      # uses the snap's own libc rather than the host's.
-      case "$(uname -m)" in
-        x86_64)
-          ELF_INTERP="/snap/core24/current/lib64/ld-linux-x86-64.so.2"
-          ELF_RPATH="/snap/core24/current/lib/x86_64-linux-gnu"
-          ;;
-        aarch64)
-          ELF_INTERP="/snap/core24/current/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1"
-          ELF_RPATH="/snap/core24/current/lib/aarch64-linux-gnu"
-          ;;
-      esac
-      patchelf \
-        --set-interpreter "$ELF_INTERP" \
-        --set-rpath "$ELF_RPATH" \
-        "$SNAPCRAFT_PART_INSTALL/bin/opencode-cli"
-
   opencode-desktop:
     plugin: nil
     after: [opencode]
@@ -107,7 +88,6 @@ parts:
       - build-essential
       - python3
       - pkg-config
-      - patchelf
       - libwebkit2gtk-4.1-dev
       - libgtk-3-dev
       - libsoup-3.0-dev
@@ -123,8 +103,6 @@ parts:
       - libpango-1.0-0
       - libpangocairo-1.0-0
       - libglib2.0-0
-      - libgobject-2.0-0t64
-      - libgio-2.0-0t64
       - libepoxy0
       - libfontconfig1
       - libfribidi0
@@ -171,22 +149,6 @@ parts:
       # The main executable inside the unpacked dir matches the productName
       DESKTOP_BIN=$(find "dist/${DESKTOP_ARCH}" -maxdepth 1 -type f -executable | grep -v '\.so' | head -1)
       cp "$DESKTOP_BIN" "$SNAPCRAFT_PART_INSTALL/bin/OpenCode"
-
-      # Patch ELF interpreter and rpath to use staged libraries
-      case "$(uname -m)" in
-        x86_64)
-          ELF_INTERP="/snap/core24/current/lib64/ld-linux-x86-64.so.2"
-          ELF_RPATH="\$ORIGIN/../usr/lib/x86_64-linux-gnu:/snap/core24/current/lib/x86_64-linux-gnu"
-          ;;
-        aarch64)
-          ELF_INTERP="/snap/core24/current/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1"
-          ELF_RPATH="\$ORIGIN/../usr/lib/aarch64-linux-gnu:/snap/core24/current/lib/aarch64-linux-gnu"
-          ;;
-      esac
-      patchelf \
-        --set-interpreter "$ELF_INTERP" \
-        --set-rpath "$ELF_RPATH" \
-        "$SNAPCRAFT_PART_INSTALL/bin/OpenCode"
 
       # Install desktop integration files
       mkdir -p "$SNAPCRAFT_PART_INSTALL/usr/share/applications"
