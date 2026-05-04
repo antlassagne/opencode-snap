@@ -52,6 +52,10 @@ parts:
       craftctl default
       craftctl set version="$(jq -r .version packages/opencode/package.json)"
     override-build: |
+      # Install Node.js 22 (Vite 7 requires Node 20.19+ or 22.12+)
+      curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+      apt-get install -y nodejs
+
       # Install Bun
       curl -fsSL https://bun.sh/install | bash
       export BUN_INSTALL="$HOME/.bun"
@@ -124,6 +128,10 @@ parts:
       - libgbm1
       - libasound2t64
     override-build: |
+      # Install Node.js 22 (Vite 7 requires Node 20.19+ or 22.12+)
+      curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+      apt-get install -y nodejs
+
       # Install Bun
       curl -fsSL https://bun.sh/install | bash
       export BUN_INSTALL="$HOME/.bun"
