@@ -1,5 +1,6 @@
 name: opencode
 adopt-info: opencode
+title: OpenCode
 summary: The open source AI coding agent
 description: |
   OpenCode is a fully open source AI-powered coding agent that runs in
@@ -12,6 +13,10 @@ description: |
   with MCP servers, making it a versatile coding assistant directly in
   the terminal.
 license: MIT
+website: https://opencode.ai
+contact: https://github.com/anomalyco/opencode/issues
+issues: https://github.com/anomalyco/opencode/issues
+source-code: https://github.com/anomalyco/opencode
 base: core24
 confinement: classic
 grade: stable
@@ -38,6 +43,7 @@ parts:
       - build-essential
       - python3
       - pkg-config
+      - patchelf
     override-pull: |
       craftctl default
       craftctl set version="$(jq -r .version packages/opencode/package.json)"
@@ -64,3 +70,21 @@ parts:
       # Install the compiled binary
       mkdir -p "$SNAPCRAFT_PART_INSTALL/bin"
       cp "dist/opencode-linux-${ARCH}/bin/opencode" "$SNAPCRAFT_PART_INSTALL/bin/opencode"
+
+      # Patch ELF interpreter and rpath to use snap's core24 libraries.
+      # This is required for classic confinement best practices so the binary
+      # uses the snap's own libc rather than the host's.
+      case "$(uname -m)" in
+        x86_64)
+          ELF_INTERP="/snap/core24/current/lib64/ld-linux-x86-64.so.2"
+          ELF_RPATH="/snap/core24/current/lib/x86_64-linux-gnu"
+          ;;
+        aarch64)
+          ELF_INTERP="/snap/core24/current/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1"
+          ELF_RPATH="/snap/core24/current/lib/aarch64-linux-gnu"
+          ;;
+      esac
+      patchelf \
+        --set-interpreter "$ELF_INTERP" \
+        --set-rpath "$ELF_RPATH" \
+        "$SNAPCRAFT_PART_INSTALL/bin/opencode"
