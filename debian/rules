@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	npm install --omit=dev
+	npm run build
+
+override_dh_auto_install:
+	install -d debian/opencode/usr/bin
+	install -m 755 packages/opencode/bin/opencode debian/opencode/usr/bin/opencode
+
+override_dh_auto_test:
+	# Tests require network access and additional tooling; skip for build.
+
+override_dh_auto_clean:
+	rm -rf node_modules
+	dh_auto_clean

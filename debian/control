@@ -1,0 +1,28 @@
+Source: opencode
+Section: devel
+Priority: optional
+Maintainer: Antoine Lassagne <antoine.lassagne@canonical.com>
+Build-Depends: debhelper-compat (= 13),
+               nodejs (>= 18),
+               npm,
+Standards-Version: 4.7.0
+Homepage: https://opencode.ai/
+Vcs-Git: https://github.com/anomalyco/opencode.git
+Vcs-Browser: https://github.com/anomalyco/opencode
+Rules-Requires-Root: no
+
+Package: opencode
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         nodejs (>= 18),
+Description: open source AI coding agent
+ OpenCode is a fully open source AI-powered coding agent that runs in
+ the terminal. It supports multiple AI providers including Claude,
+ OpenAI, Google, and local models. Features include interactive TUI,
+ built-in LSP support, a client/server architecture, and two built-in
+ agents (build and plan) for development and code exploration tasks.
+ .
+ OpenCode can edit files, run commands, search codebases, and interact
+ with MCP servers, making it a versatile coding assistant directly in
+ the terminal.
